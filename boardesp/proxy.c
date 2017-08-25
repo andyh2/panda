@@ -221,7 +221,7 @@ void ICACHE_FLASH_ATTR inter_recv_cb(void *arg, char *pusrdata, unsigned short l
 void ICACHE_FLASH_ATTR wifi_init() {
   // default ssid and password
   memset(ssid, 0, 32);
-  os_sprintf(ssid, "panda-%08x-BROKEN", system_get_chip_id()); 
+  os_sprintf(ssid, "panda-%08x-BROKEN", system_get_chip_id());
   char password[] = "testing123";
 
   // fetch secure ssid and password
@@ -235,7 +235,12 @@ void ICACHE_FLASH_ATTR wifi_init() {
     SHA_hash(resp, 0x1C, digest);
     if (memcmp(digest, resp+0x1C, 4) == 0) {
       // OTP is valid
-      memcpy(ssid+6, resp, 0x10);
+      char ssid_dashed[0x13];
+      for(int j = 0, dashes = 1; j < 0x10; j+=4, dashes += 1) {
+        memcpy(ssid_dashed + j, resp + j, 4);
+        ssid_dashed[j + dashes] = '-';
+      }
+      memcpy(ssid+6, ssid_dashed, 0x13);
       memcpy(password, resp+0x10, 10);
       break;
     }
@@ -246,7 +251,7 @@ void ICACHE_FLASH_ATTR wifi_init() {
   wifi_set_opmode(SOFTAP_MODE);
   struct softap_config config;
   wifi_softap_get_config(&config);
-  strcpy(config.ssid, ssid); 
+  strcpy(config.ssid, ssid);
   strcpy(config.password, password);
   config.ssid_len = strlen(ssid);
   config.authmode = AUTH_WPA2_PSK;
@@ -301,7 +306,7 @@ void ICACHE_FLASH_ATTR user_init() {
   gpio_init();
 
   // configure UART TXD to be GPIO1, set as output
-  PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1); 
+  PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1);
   gpio_output_set(0, 0, (1 << pin), 0);
 
   // configure SPI
@@ -321,7 +326,7 @@ void ICACHE_FLASH_ATTR user_init() {
   //SPICsPinSelect(SpiNum_HSPI, SpiPinCS_1);
 
   // configure UART TXD to be GPIO1, set as output
-  PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5); 
+  PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5);
   gpio_output_set(0, 0, (1 << 5), 0);
   gpio_output_set((1 << 5), 0, 0, 0);
 
